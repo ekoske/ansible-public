@@ -1,7 +1,8 @@
 - hosts: all
+  gather_facts: yes
   tasks:
     - name: Erstelle ~/ansible-test.txt mit Inhalt "ok"
-      copy:
-        dest: "{{ lookup('env','HOME') }}/ansible-test.txt"
+      ansible.builtin.copy:
+        dest: "{{ ansible_env.HOME | default(lookup('env','HOME')) }}/ansible-test.txt"
         content: "ok\n"
         mode: '0644'
