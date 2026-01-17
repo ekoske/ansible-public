@@ -1,7 +1,22 @@
----
-- hosts: x-wing
-  become: true
+- name: Erstelle ansible-test.txt im Home-Verzeichnis des Benutzers
+  hosts: all
+  become: false
+  vars:
+    target_user: "{{ ansible_user | default(lookup('env','USER')) }}"
   tasks:
-    - name: Print OS info
-      ansible.builtin.package:
-        name: apache2
+    - name: Ermittele Home-Verzeichnis des Zielbenutzers
+      ansible.builtin.user:
+        name: "{{ target_user }}"
+      register: _user_info
+      check_mode: yes
+
+    - name: Setze home_path Fact
+      set_fact:
+        home_path: "{{ (lookup('vars', 'ansible_facts') | default({}))['getent_passwd'][target_user].home if (lookup('vars','ansible_facts') | default({})).get('getent_passwd') is defined and target_user in (lookup('vars','ansible_facts')['getent_passwd']) else lookup('env','HOME') }}"
+
+    - name: Erstelle Datei ansible-test.txt mit Inhalt "ok"
+      ansible.builtin.copy:
+        dest: "{{ home_path }}/ansible-test.txt"
+        content: "ok\n"
+        owner: "{{ target_user }}"
+        mode: '0644'
