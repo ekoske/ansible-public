@@ -1,20 +1,7 @@
-- name: Erstelle ansible-test.txt im Home-Verzeichnis des Benutzers
-  hosts: all
-  become: false
-  vars:
-    target_user: "{{ ansible_user | default(lookup('env','USER')) }}"
+- hosts: all
   tasks:
-    - name: Hole passwd-Eintrag für target_user (getent)
-      ansible.builtin.set_fact:
-        passwd_entry: "{{ lookup('ansible.builtin.getent', 'passwd', target_user) | first | default({}) }}"
-
-    - name: Bestimme home_path (Fallback auf env HOME)
-      ansible.builtin.set_fact:
-        home_path: "{{ passwd_entry.home | default(ansible_env.HOME | default(lookup('env','HOME'))) }}"
-
-    - name: Erstelle Datei ansible-test.txt mit Inhalt \"ok\"
-      ansible.builtin.copy:
-        dest: "{{ home_path }}/ansible-test.txt"
+    - name: Erstelle ~/ansible-test.txt mit Inhalt "ok"
+      copy:
+        dest: "{{ lookup('env','HOME') }}/ansible-test.txt"
         content: "ok\n"
-        owner: "{{ target_user }}"
         mode: '0644'
